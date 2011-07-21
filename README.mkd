@@ -1,0 +1,97 @@
+
+# Falmouth Dev Environment
+
+This is a working example of using [Rake](http://rake.rubyforge.org/),
+[Vagrant](http://vagrantup.com/), and the [Scholars' Lab's Chef
+cookbook](https://github.com/scholarslab/cookbooks) to create a working
+development environment for a site based on [Omeka](http://omeka.org/) and
+[Solr](http://lucene.apache.org/solr/).
+
+## Requirements
+
+This requires this software to get started:
+
+ * [Ruby](http://www.ruby-lang.org/en/)
+ * [Rake](http://rake.rubyforge.org/)
+ * [Vagrant](http://vagrantup.com/)
+ * [git](http://git-scm.com/)
+
+## What This Does
+
+This provides a set of Rake tasks to manage the Vagrant-managed VM.
+
+## What's Missing
+
+In order for this to work, you'll need to set the passwords specified in the
+`Vagrantfile`. For most of you, this will be impossible, since you don't have
+any access to the resources mentioned. However, this should still provide a
+good example of setting up a system like this.
+
+You'll also need the content for the site, provided by a database dump and a
+tarball of static files. In the `Rakefile`, these are named
+`falmouth-production.sql.gz` and `archive.tar.bz2`. It will run successfully
+without these, but the database won't be populated, and the you'll need to
+remove the `init` task's dependencies on `setup:loaddb` and `setup:archive`.
+
+## Usage
+
+Basically, you'll use this by putting the `Vagrantfile` and `Rakefile` into a
+directory and calling:
+
+```base
+$ rake init
+```
+
+Once it's done, you need to finish upgrading Omeka and trigger recreating the
+Solr index. To do this, follow these steps:
+
+ 1. Go to
+    [http://localhost:8050/admin/upgrade](http://localhost:8050/admin/upgrade)
+    to upgrade the database.
+ 2. Log in and go to
+    [http://localhost:8050/admin/plugins](http://localhost:8050/admin/plugins)
+    to upgrade the plugins.
+ 3. Deactivate the COinS plugin.
+ 4. Configure the SolrSearch plugin at
+    [http://localhost:8050/admin/plugins/config?name=SolrSearch](http://localhost:8050/admin/plugins/config?name=SolrSearch).
+    Change the Solr core name to `/solr/`.
+ 5. Go to the Solr Index panel at
+    [http://localhost:8050/admin/solr-search/reindex/](http://localhost:8050/admin/solr-search/reindex/)
+    and force a re-index.
+
+That's it. You can access the web site at
+[http://localhost:8050/](http://localhost:8050/).
+
+## What Does It Do?
+
+First, the `init` task clones the Chef cookbooks it needs from GitHub.
+
+Then it initializes the VM. This sets up Omeka and Solr. This also downloads
+the Falmouth Omeka theme and the CsvImport, SolrSearch, VraCoreElementSet, and
+Dropbox plugins. Finally, it loads the data (the database dump and the static
+file archive) and configures Solr.
+
+## Rake Tasks
+
+The `Rakefile` has a number of useful tasks.
+
+### rake init
+
+This pulls down all the data it can and sets up the site. This should only need
+to be called once.
+
+### rake clobber
+
+This removes *everything* that the `init` task set up. This destroys the VM and
+removes the two GitHub repositories it downloaded.
+
+### rake chefst
+
+Sometimes, Chef has problems setting things up, and it leaves a stacktrace file
+on the VM. This makes a SSH call to cat the file to the terminal.
+
+### rake halt
+
+This does a graceful shutdown of the VM. This is better than calling `vagrant
+halt`, which does a hard shut-down.
+
