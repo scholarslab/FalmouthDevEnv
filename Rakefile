@@ -2,6 +2,13 @@
 require 'fileutils'
 require 'vagrant'
 
+task :default => :usage
+
+task :usage do
+  puts "You forgot to tell the computer what to do; try one of these commands:"
+  system("rake -T")
+end
+
 ################################
 ## These tasks set up the VM. ##
 ################################
