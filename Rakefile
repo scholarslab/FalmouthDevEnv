@@ -2,6 +2,9 @@
 require 'fileutils'
 require 'vagrant'
 
+ARCHIVE_FILE = File.join(File.dirname(__FILE__), 'archive.tar.bz2')
+SQL_DUMP = File.join(File.dirname(__FILE__), 'falmouth-production.sql.gz')
+
 task :default => :usage
 
 task :usage do
@@ -44,14 +47,22 @@ namespace :setup do
 
   desc 'Expands the archive directory\'s contents.'
   task :archive do
-    puts 'Expanding archive files.'
-    system('cd omeka ; tar xfj ../archive.tar.bz2')
+    if File.exists?(ARCHIVE_FILE)
+      puts 'Expanding archive files.'
+      system("cd omeka ; tar xfj #{ARCHIVE_FILE}")
+    else
+      puts "Archive file (#{ARCHIVE_FILE}) does not exist. Skipping."
+    end
   end
 
   desc 'This loads the Falmouth data into the database.'
   task :loaddb do
-    puts 'Loading the initial database data.'
-    system('gzip -cd falmouth-production.sql.gz | mysql -ufalmouth -pfalmouth --protocol=TCP --port=3334 falmouth')
+    if File.exists?(SQL_DUMP)
+      puts 'Loading the initial database data.'
+      system("gzip -cd #{SQL_DUMP} | mysql -ufalmouth -pXXXXXXXX --protocol=TCP --port=3334 falmouth")
+    else
+      puts "SQL dump file (#{SQL_DUMP}) does not exist. Skipping."
+    end
   end
 
   desc 'This transfers the Solr config files from the SolrSearch plugin to the VM.'
