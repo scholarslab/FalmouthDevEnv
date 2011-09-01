@@ -1,9 +1,5 @@
 require 'fileutils'
 
-if File.directory?('cookbooks/windows')
-  FileUtils.remove_dir('cookbooks/windows', true)
-end
-
 Vagrant::Config.run do |config|
   # All Vagrant configuration is done here. The most common configuration
   # options are documented and commented below. For a complete reference,
@@ -17,7 +13,7 @@ Vagrant::Config.run do |config|
   config.vm.box_url = "../centos-vagrant-32/base-centos32.box"
 
   config.vm.provision :chef_solo do |chef|
-    chef.cookbooks_path = ["cookbooks", "slab-cookbooks"]
+    chef.cookbooks_path = ["cookbooks/opscode", "cookbooks/slab"]
 
     chef.add_recipe "omeka"
     chef.add_recipe "solr"

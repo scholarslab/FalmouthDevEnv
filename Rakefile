@@ -4,6 +4,10 @@ require 'vagrant'
 
 ARCHIVE_FILE = File.join(File.dirname(__FILE__), 'archive.tar.bz2')
 SQL_DUMP = File.join(File.dirname(__FILE__), 'falmouth-production.sql.gz')
+BROKEN_RECIPES = %w{opscode/windows
+                    opscode/firewall
+                    opscode/webpi
+                    opscode/iis}
 
 task :default => :usage
 
@@ -18,19 +22,32 @@ end
 
 namespace :setup do
 
-  desc 'Clone OpsCode cookbook.'
-  task :cookbooks do |t|
-    unless File.directory?('cookbooks')
-      puts 'Cloning OpsCode Chef Cookbooks.'
-      system('git clone https://github.com/opscode/cookbooks.git cookbooks')
+  desc 'Clone Chef cookbooks.'
+  task :cookbooks do
+    unless File.directory?("cookbooks")
+      Dir.mkdir('cookbooks')
     end
+    Rake::Task['setup:opscodebook'].invoke
+    Rake::Task['setup:slabbook'].invoke
+    Rake::Task['setup:cleankitchen'].invoke
+  end
+
+  desc 'Clone OpsCode cookbook.'
+  task :opscodebook do
+    system('git clone https://github.com/opscode/cookbooks.git cookbooks/opscode')
   end
 
   desc 'Clone SLab cookbook.'
-  task :slabcookbooks do |t|
-    unless File.directory?('slab-cookbooks')
-      puts 'Cloning Scholars\' Lab Chef Cookbooks.'
-      system('git clone https://github.com/scholarslab/cookbooks.git slab-cookbooks')
+  task :slabbook do
+    system('git clone https://github.com/scholarslab/cookbooks.git cookbooks/slab')
+  end
+
+  desc "This removes recipes that are causing errors from the cookbook."
+  task :cleankitchen do
+    BROKEN_RECIPES.each do |recipe|
+      if File.directory?("cookbooks/#{recipe}")
+        FileUtils.rmtree "cookbooks/#{recipe}", :verbose => true
+      end
     end
   end
 
@@ -97,7 +114,6 @@ end
 desc "Initialize the environment. This calls cookbooks, slabcookbooks, initvm,
 archive, loaddb, solrconf, and tomcatrestart."
 task :init => ['setup:cookbooks',
-               'setup:slabcookbooks',
                'setup:initvm',
                'setup:archive', 
                'setup:loaddb',
@@ -123,7 +139,7 @@ end
 
 desc 'Clobber everything. This deletes downloaded repositories and destroys the VM.'
 task :clobber do
-  FileUtils.rmtree %w{cookbooks omeka slab-cookbooks}, :verbose => true
+  FileUtils.rmtree %w{cookbooks omeka}, :verbose => true
   env = Vagrant::Environment.new
   puts 'Destroying VM.'
   env.cli('destroy')
@@ -136,7 +152,7 @@ task :chefst do
   raise "Must be running!" if !env.primary_vm.vm.running?
   puts "Getting chef stacktrace."
   env.primary_vm.ssh.execute do |ssh|
-    ssh.exec!("cat /tmp/vagrant-chef/chef-stacktrace.out") do |channel, stream, data|
+    ssh.exec!("cat /tmp/vagrant-chef-1/chef-stacktrace.out") do |channel, stream, data|
       puts data
     end
   end
