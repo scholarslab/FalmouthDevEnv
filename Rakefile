@@ -34,7 +34,7 @@ namespace :setup do
 
   desc 'Clone OpsCode cookbook.'
   task :opscodebook do
-    system('git clone https://github.com/opscode/cookbooks.git cookbooks/opscode')
+    system('git clone --branch=slab https://github.com/erochest/opscode-cookbooks.git cookbooks/opscode')
   end
 
   desc 'Clone SLab cookbook.'
