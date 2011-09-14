@@ -2,6 +2,7 @@
 .vagrant
 *.bz2
 *.gz
+*.box
 cookbooks/
 omeka/
 slab-cookbooks/
