@@ -10,7 +10,7 @@ Vagrant::Config.run do |config|
 
   # The url from where the 'config.vm.box' box will be fetched if it
   # doesn't already exist on the user's system.
-  config.vm.box_url = "./base-centos32.box"
+  config.vm.box_url = "base-centos32.box"
 
   config.vm.provision :chef_solo do |chef|
     chef.cookbooks_path = ["cookbooks/opscode", "cookbooks/slab"]
@@ -22,7 +22,7 @@ Vagrant::Config.run do |config|
     # 'HEAD' or a branch name.
     chef.json.merge!({
       :omeka => {
-        :version => 'stable-1.4',
+        :version => 'master',
 
         :username            => 'admin',
         :password            => 'XXXXXXXX',
