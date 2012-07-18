@@ -1,7 +1,5 @@
 .DS_Store
 .vagrant
-*.bz2
-*.gz
 *.box
 cookbooks/
 omeka/
